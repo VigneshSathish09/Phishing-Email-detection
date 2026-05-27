@@ -1,0 +1,51 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
+data=pd.read_csv("CEAS_08.csv")
+data.info()
+print(data.isnull().sum())
+print("Few sample Datas:\n")
+print(data.head())
+print("\n Columns:")
+print(data.columns)
+X=data['body']
+y=data['label']
+X=X.fillna("")
+vectorizer=TfidfVectorizer(stop_words='english')
+x_vectorized=vectorizer.fit_transform(X)
+X_train,X_test,y_train,y_test = train_test_split(x_vectorized,y,test_size=0.2, random_state=42)
+#Training the model
+model=MultinomialNB()
+model.fit(X_train, y_train)
+y_pred=model.predict(X_test)
+accuracy=accuracy_score(y_test, y_pred)
+print("\nAccuracy:")
+print(accuracy)
+print("\nClassification report:")
+print(classification_report(y_test, y_pred))
+cm=confusion_matrix(y_test, y_pred)
+print("\nConfusion Matrix:")
+print(cm)
+plt.figure(figsize=(6,5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Phishing Email Detection - Confusion Matrix")
+plt.show()
+sample_email = ["Congratulations! Your bank account has been suspended. Click here to verify immediately."]
+
+sample_vector = vectorizer.transform(sample_email)
+
+prediction = model.predict(sample_vector)
+
+print("\nCustom Email Prediction:")
+
+if prediction[0] == 1:
+    print("Phishing Email")
+else:
+    print("Safe Email")
